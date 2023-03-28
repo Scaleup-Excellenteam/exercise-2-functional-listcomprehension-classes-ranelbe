@@ -49,8 +49,8 @@ class PostOffice:
     def read_inbox(self, username, n=None):
         """ Read the inbox of a user.
         :param str username: The username of the user to read the inbox of.
-        :param n: The number of the first n messages to read.
-        :type n: int, optional if not given, read all messages.
+        :param n: The number of the first n unread messages to read.
+        :type n: int, optional if not given, read all unread messages.
         :return: The messages read.
         :rtype: list
         :raises KeyError: if the user does not exist.
@@ -58,12 +58,12 @@ class PostOffice:
         if username not in self.boxes:
             raise KeyError(f'User {username} does not exist')
         user_box = self.boxes[username]
-        messages = user_box[:n] if n else user_box
-        messages = [msg for msg in messages if not msg['read']]
+        # get the first n unread messages:
+        n = n if n else len(user_box)
+        messages = [msg for msg in user_box if not msg['read']][:n]
+        # mark the messages as read:
         for msg in messages:
             msg['read'] = True
-
-        # return the list of messages read:
         return messages
 
     def search_inbox(self, username, st):
@@ -91,15 +91,15 @@ if __name__ == "__main__":
         po.send_message('Alice', 'Bob', 'this is title4!!', 'this is msg4!!')
         po.send_message('Alice', 'Bob', 'this is title5!!', 'this is Alice msg5!!')
 
-        print("\nread the 3 first messages of Bob's inbox:")
+        print("\nread the first 3 unread messages of Bob's inbox:")
         print(*po.read_inbox('Bob', 3), sep='\n')
-        # should return only the 2 last messages because the first 3 were already read
-        print("\nread all of Bob's inbox:")
-        print(*po.read_inbox('Bob'), sep='\n')
+        print("\nread all unread messages of Bob's inbox:")
+        print(*po.read_inbox('Bob'), sep='\n')  # should print only the 2 last message
+        print("\nread all unread messages of Bob's inbox:")
+        print(*po.read_inbox('Bob'), sep='\n')  # should be empty
+
         print("\nthe messages that contain 'Alice' keyword in Bob's inbox (body or title):")
         print(*po.search_inbox('Bob', 'Alice'), sep='\n')
 
     except KeyError as e:
         print(e)
-
-
